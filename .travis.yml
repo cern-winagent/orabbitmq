@@ -1,0 +1,18 @@
+language: csharp
+solution: rabbitmq.sln
+script:
+- wget -P bin/ https://github.com/cern-winagent/plugin/releases/latest/download/plugin.dll
+- msbuild /p:Configuration=Release rabbitmq.sln
+before_deploy:
+- sha1sum rabbitmq/bin/Release/rabbitmq.dll > rabbitmq/bin/Release/rabbitmq.dll.sha1
+deploy:
+  provider: releases
+  api_key:
+    secure: chVLmzG7WaHw3wB68ZW6u5JfRDQcbY98rjDnSEQuGPBTQgPk5RpPqRxwV+ayoUWIBsqPknJNZGB9GH7t3wlS23WkU9cdvuQR12Qj31/zYJIcR+i+3IXYR8h3xiaLa8akIMQuBAfs0RkYi2i5O1OvxHgOwLw9cJUTA3ouFwhsuLCktgsV+a7+4/qGs5gtU6Hylv3nGqBKxqMJtL61yd9di3iRSbrom/kb6sjexzAw6dMQKMitggs2wMKBybhYyKJQL6TQGolKqyKlrdkaBu/RnyK6wiqaaeEYiID8qoWqz1mbHA5/9BX7aVP3qtsYHwY1EwQ6HwdiWf4Rqd/aWcr/92z/uZ867vuN51AQKkZhz+HTLgGO8vzZNOPkXf0HhbFRwS1STYe/rI2YDdGmKn7TVHNQO+OrbnOtq42ZWxeIzYwBpFxZyF29bUDIbKdqwgVR4cLg64V9OFZckV1lChSPg8Y0CMg1ykSe/NEC0wZjL3PyAf3BWKxcoNawkyB+sAf0bp4gj192L6PTv2YDUDbhJk2cTrnrvJ8acCHWeNBKBiRk5TJUi7+NyWsCkZiWNC2trOYE6JeAgXKndk28idkC19wDwvuIeqmHGHaUsXiXgGFjob/9YrReQOeB/300mVtzOn3OSmDGsS4FYVZ+OmTkvWnyWjfpX8uLFw9I3+zB51w=
+  file:
+  - rabbitmq/bin/Release/rabbitmq.dll
+  - rabbitmq/bin/Release/rabbitmq.dll.sha1
+  skip_cleanup: true
+  on:
+    repo: cern-winagent/orabbitmq
+    tags: true
