@@ -1,7 +1,7 @@
 language: csharp
 solution: rabbitmq.sln
 script:
-- wget -P bin/ https://github.com/cern-winagent/plugin/releases/latest/download/plugin.dll
+- wget -P rabbitmq/lib/ https://github.com/cern-winagent/plugin/releases/latest/download/plugin.dll
 - msbuild /p:Configuration=Release rabbitmq.sln
 before_deploy:
 - sha1sum rabbitmq/bin/Release/rabbitmq.dll > rabbitmq/bin/Release/rabbitmq.dll.sha1
