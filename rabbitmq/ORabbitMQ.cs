@@ -1,33 +1,35 @@
-﻿using RabbitMQ.Client;
+﻿using plugin;
+using Newtonsoft.Json.Linq;
+using RabbitMQ.Client;
 using System.Text;
 
-namespace plugin
+namespace rabbitmq
 {
     [PluginAttribute(PluginName = "RabbitMQ")]
     public class ORabbitMQ : IOutputPlugin
     {
-        public void Execute(string json, string[] options)
+        public void Execute(string jsonData, JObject set)
         {
+            var settings = set.ToObject<Settings.Plugin>();
 
-            // options[0] => Hostmane
-            // options[1] => Username
-            // options[2] => Password
-            // options[3] => Queue name
-            var factory = new ConnectionFactory() { HostName = options[0], UserName = options[1], Password = options[2] };
+            var factory = new ConnectionFactory() {
+                HostName = settings.HostName,
+                UserName = settings.UserName,
+                Password = settings.Password };
             using (var connection = factory.CreateConnection())
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDeclare(queue: options[3],
+                    channel.QueueDeclare(queue: settings.Queue,
                                             durable: false,
                                             exclusive: false,
                                             autoDelete: false,
                                             arguments: null);
 
                     //string message = "Hello World!";
-                    var body = Encoding.UTF8.GetBytes(json);
+                    var body = Encoding.UTF8.GetBytes(jsonData);
 
                     channel.BasicPublish(exchange: "",
-                                            routingKey: options[3],
+                                            routingKey: settings.Queue,
                                             basicProperties: null,
                                             body: body);
                 }
