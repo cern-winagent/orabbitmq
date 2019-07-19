@@ -53,7 +53,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Settings\Plugin.cs" />
+    <Compile Include="Exceptions\RequiredSettingNotFound.cs" />
+    <Compile Include="Exceptions\UnexpectedSettingValueException.cs" />
+    <Compile Include="Settings\RabbitMQ.cs" />
     <Compile Include="ORabbitMQ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
