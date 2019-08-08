@@ -5,6 +5,8 @@ namespace rabbitmq.Settings
 {
     class RabbitMQ
     {
+        private string queueName;
+
         [JsonProperty(PropertyName = "HostName", Required =Required.Always)]
         public string HostName { get; set; }
 
@@ -15,7 +17,12 @@ namespace rabbitmq.Settings
         public string Password { get; set; }
 
         [JsonProperty(PropertyName = "QueueName", Required = Required.Always)]
-        public string QueueName { get; set; }
+        public string QueueName
+        {
+            get => queueName;
+
+            set => queueName = value.ToLower();
+        }
 
         [JsonProperty(PropertyName = "VirtualHost")]
         public string VirtualHost { get; set; }
