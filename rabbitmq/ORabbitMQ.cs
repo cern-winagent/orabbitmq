@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using System.Text;
+using System;
 
 using plugin;
-using System;
+using System.Diagnostics;
 
 namespace rabbitmq
 {
@@ -16,44 +17,60 @@ namespace rabbitmq
             {
                 var settings = set.ToObject<Settings.RabbitMQ>();
 
-                var factory = new ConnectionFactory()
+                foreach(Settings.RabbitMQ.Server server in settings.Servers)
                 {
-                    HostName = settings.HostName,
-                    VirtualHost = settings.VirtualHost,
-                    UserName = settings.UserName,
-                    Password = settings.Password
-                };
-
-                using (var connection = factory.CreateConnection())
-                {
-                    using (var channel = connection.CreateModel())
+                    var factory = new ConnectionFactory()
                     {
-                        channel.ExchangeDeclare(exchange: settings.ExchangeName, 
-                                                type: settings.ExchangeType);
+                        HostName = server.HostName,
+                        VirtualHost = server.VirtualHost,
+                        UserName = server.UserName,
+                        Password = server.Password
+                    };
 
-                        channel.QueueDeclare(queue: settings.QueueName,
-                                             durable: true,
-                                             exclusive: false,
-                                             autoDelete: false,
-                                             arguments: null);
+                    try
+                    {
+                        using (var connection = factory.CreateConnection(server.HostName))
+                        {
+                            using (var channel = connection.CreateModel())
+                            {
+                                channel.ExchangeDeclare(exchange: server.ExchangeName,
+                                                        type: server.ExchangeType);
 
-                        channel.QueueBind(queue: settings.QueueName,
-                                          exchange: settings.ExchangeName,
-                                          routingKey: settings.RoutingKey ?? settings.QueueName);
+                                channel.QueueDeclare(queue: server.QueueName,
+                                                     durable: true,
+                                                     exclusive: false,
+                                                     autoDelete: false,
+                                                     arguments: null);
 
-                        var correlationId = Guid.NewGuid().ToString();
-                        var properties = channel.CreateBasicProperties();
-                        properties.CorrelationId = correlationId;
-                        properties.Persistent = true;
+                                channel.QueueBind(queue: server.QueueName,
+                                                  exchange: server.ExchangeName,
+                                                  routingKey: server.RoutingKey ?? server.QueueName);
 
-                        var body = Encoding.UTF8.GetBytes(jsonData);
+                                var correlationId = Guid.NewGuid().ToString();
+                                var properties = channel.CreateBasicProperties();
+                                properties.CorrelationId = correlationId;
+                                properties.Persistent = true;
 
-                        channel.BasicPublish(exchange: settings.ExchangeName,
-                                             routingKey: settings.RoutingKey ?? settings.QueueName,
-                                             basicProperties: properties,
-                                             body: body);
+                                var body = Encoding.UTF8.GetBytes(jsonData);
+
+                                channel.BasicPublish(exchange: server.ExchangeName,
+                                                     routingKey: server.RoutingKey ?? server.QueueName,
+                                                     basicProperties: properties,
+                                                     body: body);
+                            }
+                        }
+                    }
+                    catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException)
+                    {
+                        // Server Unrecheable, keep the execution going
+                        using (EventLog eventLog = new EventLog("Application"))
+                        {
+                            eventLog.Source = "Winagent";
+                            eventLog.WriteEntry(String.Format("RabbitMQ: Could not reach {0}", server.HostName), EventLogEntryType.Error, 0, 5);
+                        }
                     }
                 }
+
             }
             catch(Newtonsoft.Json.JsonReaderException jre)
             {
@@ -63,7 +80,6 @@ namespace rabbitmq
             {
                 throw new Exceptions.RequiredSettingNotFound("RabbitMQ: Could not find a required setting", jse);
             }
-
         }
     }
 }
