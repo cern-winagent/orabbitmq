@@ -60,14 +60,14 @@ namespace rabbitmq
                             }
                         }
                     }
+                    catch (System.TimeoutException)
+                    {
+                        throw new Exceptions.TimeoutException("RabbitMQ: The operation has timed out");
+                    }
                     catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException)
                     {
                         // Server Unrecheable, keep the execution going
-                        using (EventLog eventLog = new EventLog("Application"))
-                        {
-                            eventLog.Source = "Winagent";
-                            eventLog.WriteEntry(String.Format("RabbitMQ: Could not reach {0}", server.HostName), EventLogEntryType.Error, 0, 5);
-                        }
+                        throw new Exceptions.ServerUnreachableException(String.Format("RabbitMQ: Could not reach {0}", server.HostName));
                     }
                 }
 
@@ -78,7 +78,7 @@ namespace rabbitmq
             }
             catch(Newtonsoft.Json.JsonSerializationException jse)
             {
-                throw new Exceptions.RequiredSettingNotFound("RabbitMQ: Could not find a required setting", jse);
+                throw new Exceptions.SettingNotFoundException("RabbitMQ: Could not find a required setting", jse);
             }
         }
     }
