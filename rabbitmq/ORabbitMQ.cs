@@ -60,14 +60,14 @@ namespace rabbitmq
                             }
                         }
                     }
-                    catch (System.TimeoutException)
+                    catch (System.TimeoutException te)
                     {
-                        throw new Exceptions.TimeoutException("RabbitMQ: The operation has timed out");
+                        throw new Exceptions.TimeoutException("RabbitMQ: The operation has timed out", te);
                     }
-                    catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException)
+                    catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
                     {
                         // Server Unrecheable, keep the execution going
-                        throw new Exceptions.ServerUnreachableException(String.Format("RabbitMQ: Could not reach {0}", server.HostName));
+                        throw new Exceptions.ServerUnreachableException(String.Format("RabbitMQ: Could not reach {0}", server.HostName), bue);
                     }
                 }
 
