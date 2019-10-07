@@ -54,7 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\SettingNotFoundException.cs" />
-    <Compile Include="Exceptions\ServerUnreachableException.cs" />
     <Compile Include="Exceptions\TimeoutException.cs" />
     <Compile Include="Exceptions\UnexpectedSettingValueException.cs" />
     <Compile Include="Settings\RabbitMQ.cs" />

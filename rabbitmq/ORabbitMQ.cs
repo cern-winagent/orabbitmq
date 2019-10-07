@@ -11,6 +11,8 @@ namespace rabbitmq
     [PluginAttribute(PluginName = "RabbitMQ")]
     public class ORabbitMQ : IOutputPlugin
     {
+        public event EventHandler<MessageEventArgs> MessageEvent;
+
         public void Execute(string jsonData, JObject set)
         {
             try
@@ -62,23 +64,28 @@ namespace rabbitmq
                     }
                     catch (System.TimeoutException te)
                     {
-                        throw new Exceptions.TimeoutException("RabbitMQ: The operation has timed out", te);
+                        throw new Exceptions.TimeoutException("The operation has timed out", te);
                     }
                     catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
                     {
-                        // Server Unrecheable, keep the execution going
-                        throw new Exceptions.ServerUnreachableException(String.Format("RabbitMQ: Could not reach {0}", server.HostName), bue);
+                        // Server Unreachable, keep the execution going
+                        MessageEvent?.Invoke(this, new MessageEventArgs()
+                        {
+                            Message = string.Format("Could not reach {0}", server.HostName),
+                            Type = EventLogEntryType.Warning,
+                            Exception = bue
+                        });
                     }
                 }
 
             }
             catch(Newtonsoft.Json.JsonReaderException jre)
             {
-                throw new Exceptions.UnexpectedSettingValueException("RabbitMQ: Unexpected setting value", jre);
+                throw new Exceptions.UnexpectedSettingValueException("Unexpected setting value", jre);
             }
             catch(Newtonsoft.Json.JsonSerializationException jse)
             {
-                throw new Exceptions.SettingNotFoundException("RabbitMQ: Could not find a required setting", jse);
+                throw new Exceptions.SettingNotFoundException("Could not find a required setting", jse);
             }
         }
     }
