@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace rabbitmq.Exceptions
 {
-    class UnexpectedSettingValueException : WarningException
+    class UnexpectedSettingValueException : Exception
     {
         public UnexpectedSettingValueException(string message, Exception inner) : base(message, inner)
         {

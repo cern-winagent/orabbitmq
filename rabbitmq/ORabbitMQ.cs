@@ -64,7 +64,13 @@ namespace rabbitmq
                     }
                     catch (System.TimeoutException te)
                     {
-                        throw new Exceptions.TimeoutException("The operation has timed out", te);
+                        // Server Unreachable, keep the execution going
+                        MessageEvent?.Invoke(this, new MessageEventArgs()
+                        {
+                            Message = string.Format("There connection to {0} timed out", server.HostName),
+                            Type = EventLogEntryType.Warning,
+                            Exception = te
+                        });
                     }
                     catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
                     {
